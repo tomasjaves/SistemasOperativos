@@ -1,0 +1,7 @@
+mount: el tipo del sistema de archivos, el dispositivo y el punto de montaje.
+
+hacer: el punto de montaje del dispositivo mencionado, el nombre del dispositivo y la cantidad de almacenamiento utilizado en el mismo.
+
+comandos: mount, df -t
+
+IDEAS: df -ht | tr -s ' ' ' ' | cut -d' ' -f1,3,6
