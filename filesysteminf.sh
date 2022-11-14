@@ -28,15 +28,14 @@ for tipo in $system;
         do
         a_ejercicio=$(df -aht $tipo | tr -s ' ' ' ' | cut -d' ' -f1,3,6 | sort -k2 -n | tail -n 1)
         c_ejercicio=$(mount | cut -d' ' -f5 | sort | grep $tipo | wc -w)
-        a2_ejercicio=$(df -aht $tipo | tr -s ' ' ' ' | sort -k2 -n | cut -d' ' -f6 | tail -n 1)
-        mayor=$(stat -c %t ${a2_ejercicio})
-        if [ "$mayor" == "0" ]; then
-                mayor=\'*\'
-        fi
-        menor=$(stat -c %T ${a2_ejercicio})
-        if [ "$menor" == "0" ]; then
-                menor=\'*\'
-        fi
+	a2_ejercicio=$(mount | grep $tipo | cut -d' ' -f1 | grep /dev)
+        if [ "$a2_ejercicio" ]; then	
+		mayor=$(stat -c %t ${a2_ejercicio})
+		menor=$(stat -c %T ${a2_ejercicio})
+	else
+		mayor=\'*\'
+		menor=\'*\'
+	fi
         muestra+="${tipo} ${a_ejercicio} ${c_ejercicio} ${mayor} ${menor}\n"
         done
 echo -e $muestra | column -t
