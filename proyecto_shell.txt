@@ -1,0 +1,32 @@
+Proyecto -> Parte Uno -> copyfile (una parte de copiar y otra de move).
+            Parte Dos -> Shell, opcional
+
+Entregas Parciales -> 1 -> copy de copyfile (12 Diciembre).
+                      2 -> una parte de la shell (19 Diciembre).
+Entrega Final      -> Toda la rúbrica.
+
+
+std::error_code -> return std::error_code(0,std::system_category()); -> No error.
+                   return std::error_code(errno,std::system_category()); -> Error.
+
+fork() -> Tres opciones; pid==0 (Proceso  hijo).
+                         pid>0  (Proceso padre) Tiene que esperar por
+                                los procesos hijos con la funcion 
+                                waitpid(-1,&status,0).
+                         pid<0  (Error en la llamada fork).
+
+copy_file() -> -m(ove)
+               -a(copiar archivo, después copiar atributos) src_path     (to)      dst_path
+                                                            (archivo         (archivo) (directorio)    
+                                                            existente)
+
+            src_path -> Comprobar si existe; err=stat(src_path.c_str(), &src_stat), sino da error
+                                                                            |
+                                                                    struct stat src_stat;
+            Comprobar que src_path es un archivo regular; S_ISREG(src_stat, st_mode), sino da error
+
+            dst_path -> ¿dst_path existe?; Comprobar si existe; err=stat(dst_path.c_str(), &dst_stat)
+                        ¿Existe?; Comprobar si son el mismo archivo; if (src_stat.st_dev == dst_stat.st_dev && src_stat.st_ino == dst_stat.st_ino); salir con un error.
+                        ¿dst_path directorio? sí -> dst_path+"/"+"basename de src_path"
+            close de dst_path, después -> mode_t permisos = src_stat&~S_IFMT;
+                                          Fijarse error en chmod y luego chmod(dst_path.c_str(), permisos);
