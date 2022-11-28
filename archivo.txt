@@ -1,7 +1,9 @@
-mount: el tipo del sistema de archivos, el dispositivo y el punto de montaje.
+Si se llama al script con la opción -devicefiles, representaremos la tabla considerando solo los dispositivos
 
-hacer: el punto de montaje del dispositivo mencionado, el nombre del dispositivo y la cantidad de almacenamiento utilizado en el mismo.
+representados en el sistema operativo como archivos (device files) y que como hemos mencionado se identifican
 
-comandos: mount, df -t
+con un número mayor y un número menor. Además, si se utiliza esta opción, se incluirá en cada fila de la tabla
 
-IDEAS: df -ht | tr -s ' ' ' ' | cut -d' ' -f1,3,6
+el número total de archivos abiertos en los dispositivos considerados, para el sistema de archivo descrito en esa fila.
+
+Puede serte útil en este caso, el comando lsof que muestra información sobre los archivos abiertos.
