@@ -42,7 +42,7 @@ echo "${TEXT_ULINE}${TEXT_BLACK}OPCIONES${TEXT_RESET}${TEXT_ULINE}:
 3) -devicefiles
 4) -u (nombre) (nombre2) ...
 5) -sopen
-6) -sdevice ${TEXT_RESET}
+6) -sdevice${TEXT_RESET}
 Si ${TEXT_YELLOW}no se elige opcion${TEXT_RESET}, muestra una tabla con todos los tipos de sistemas de archivos que están montados en el sistema con diferente información.
 Si la opción es ${TEXT_YELLOW}-h${TEXT_RESET}, se ofrece una ayuda.
 Si la opción es ${TEXT_YELLOW}-inv${TEXT_RESET}, cambia el orden en el que se muestran la tabla original.

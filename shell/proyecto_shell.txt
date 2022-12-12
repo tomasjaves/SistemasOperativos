@@ -1,9 +1,9 @@
-Proyecto -> Parte Uno -> copyfile (una parte de copiar y otra de move).
-            Parte Dos -> Shell, opcional
+Proyecto -> Parte Uno   -> copyfile (una parte de copiar y otra de move).
+            Parte Dos   -> Shell, opcional
 
 Entregas Parciales -> 1 -> copy de copyfile (12 Diciembre).
                       2 -> una parte de la shell (19 Diciembre).
-Entrega Final      -> Toda la rúbrica.
+Entrega Final           -> Toda la rúbrica.
 
 
 std::error_code -> return std::error_code(0,std::system_category()); -> No error.
@@ -27,6 +27,6 @@ copy_file() -> -m(ove)
 
             dst_path -> ¿dst_path existe?; Comprobar si existe; err=stat(dst_path.c_str(), &dst_stat)
                         ¿Existe?; Comprobar si son el mismo archivo; if (src_stat.st_dev == dst_stat.st_dev && src_stat.st_ino == dst_stat.st_ino); salir con un error.
-                        ¿dst_path directorio? sí -> dst_path+"/"+"basename de src_path"
+                        ¿dst_path directorio?  S_ISDIR(dst_stat, st_mode)  un directorio? sí -> dst_path+"/"+"basename de src_path"
             close de dst_path, después -> mode_t permisos = src_stat&~S_IFMT;
                                           Fijarse error en chmod y luego chmod(dst_path.c_str(), permisos);
