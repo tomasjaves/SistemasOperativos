@@ -25,7 +25,7 @@ program: funciones_shell.o main.o
 # The clean target removes all of the executable files
 # and object files produced by the build process
 # We can use it for additional housekeeping purposes
-cl:
+clean:
 	rm -f *.fa
 	rm -f *.gra
 	rm -f *.o funciones_shell
