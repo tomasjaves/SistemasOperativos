@@ -1,0 +1,62 @@
+std::error_code loop() {
+
+	std::string linea;
+	std::vector<command> commands; -> SOLO COMANDOS EXTERNOS PARA LA ENTREGA E INTERNOS PARA LA FINAL.
+
+	while(true) {
+
+		err=read_line (STDIN_FILENO, linea);
+		commands=parse_line(linea); -> Nos devuelve un vector formado por un objeto 
+					       que denominaremos command (estructuras con información de los comandos).
+		err=execute_commands(commands);
+
+		if(exit)
+		break;
+
+	}
+
+	return err;
+
+}
+
+std::error_code read_line(int fd, std::string& line) {
+
+	std::string pending_input;
+
+	std::array<uint8_t,512> buffer;
+	while(true) {
+		line.clear();
+		---pending input -> Buscar el primer salto de linea y hacer que line se iguale con el trozo desde el principio al primer salto de linea. 
+				    Quitar ese trozo de pending input. Y salir de la función. Si no hay salto de línea continuamos.
+
+		bytes=read(fd, buffer.data(), 512);
+
+		if(bytes==0) {
+			--completar pending input con un salto de linea y actualizar line con pending input.
+		}
+		else
+			-- añadir a pending input lo que hemos leido(buffer)
+	}
+}
+
+std::vector<command> parse_line(std::string& line) {
+	std::istringstream iss(line);
+	while (!iss.eof()) {
+		std::string word;
+		iss >> word;
+		std::cout << word; -> Debugging
+	}
+
+}
+
+command_result execute_commands(std::vector<command>& commands) {
+
+	for(auto command : commands) {
+
+		//Diferenciar los comandos internos, EXIT TAMBIÉN
+
+		//Ejecutar comando externo
+
+	}
+
+}
