@@ -1,8 +1,18 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
+
+// NOMBRE: Tomás Javes Tommasone
+// GRUPO: PE102
+// GMAIL: alu0101515458@ull.edu.es
+
+// PARA COMPILAR, USÉ LA HERRAMIENTA MAKE. EL EJECUTABLE SE LLAMA "program" Y SE EJECUTA DE LA FORMA:
+// "./program".
+//  SI HUBIERA ERROR, COMPILAR CON: g++ --std=c++17 main.cc tools.cc funciones_shell.cc terminal.cc
+
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <cassert>
 #include <cstdlib> 
@@ -46,9 +56,9 @@ class Terminal {
   public:
   void start();
   void print_prompt(int last_command_status);
-  std::error_code cd_command(const std::vector<std::string>& args);
-  void echo_command(const std::vector<std::string>& args);
-  int foo_command(const std::vector<std::string>& args);
+  int cd_command(const std::vector<std::string>& args);
+  int echo_command(const std::vector<std::string>& args);
+  int interno_command(const std::vector<std::string>& args);
   bool EsComandoInterno(shell::command);
   shell::command_result execute_commands(const std::vector<shell::command>& commands);
   std::vector<shell::command> parse_line(const std::string& line);
