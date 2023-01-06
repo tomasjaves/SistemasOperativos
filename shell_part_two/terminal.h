@@ -27,6 +27,7 @@
 #include <climits>
 #include <libgen.h>
 #include <utime.h>
+#include <utility>
 #include "scope.hpp"
 #include "tools.h"
 
@@ -59,12 +60,16 @@ class Terminal {
   int cd_command(const std::vector<std::string>& args);
   int echo_command(const std::vector<std::string>& args);
   int interno_command(const std::vector<std::string>& args);
+  int execute_program(const std::vector<std::string>& args, bool has_wait=true);
   bool EsComandoInterno(shell::command);
   shell::command_result execute_commands(const std::vector<shell::command>& commands);
   std::vector<shell::command> parse_line(const std::string& line);
   std::error_code read_line(int fd, std::string& line);
 
   private:
+  static std::string pending_input;
+  static std::vector<std::pair<std::string, int>> background_processes;
+  static std::string directorio;
 };
 
 #endif

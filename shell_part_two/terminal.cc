@@ -10,13 +10,19 @@
 // "./program".
 //  SI HUBIERA ERROR, COMPILAR CON: g++ --std=c++17 main.cc tools.cc funciones_shell.cc terminal.cc
 
+std::string Terminal::pending_input = "";  // Almacena los comandos que todavía no se han procesado.
+std::vector<std::pair<std::string, int>> Terminal::background_processes = {}; // Se utilizará para verificar que el
+                                                                              // proceso terminó.       
+std::string Terminal::directorio = "";     // Contendrá el directorio actual.
+
 // Función "print_prompt" que imprime por pantalla el prompt correspondiente.
 void Terminal::print_prompt(int last_command_status) {
-  std::string login = getlogin();                // Cogemos el nombre del usuario actual.
+  std::string login = getUserlogin();            // Cogemos el nombre del usuario actual.
   std::string hostname;
   hostname.resize(1000);
   gethostname(hostname.data(), hostname.size()); // Cogemos el nombre de la máquina.
   std::string cwd = getcwd(nullptr, 0);          // Cogemos la ruta actual de la shell.
+
   // llamamos a la función print() con "$>" en caso de ejecución correcta del anterior comando.
   if(last_command_status == 0) print(login + "@" + hostname + ":" + cwd + "$> ");
   // llamamos a la función print() con "$<" en caso de ejecución incorrecta del anterior comando.
@@ -35,12 +41,21 @@ int Terminal::cd_command(const std::vector<std::string>& args) {
   // del directorio con el que vamos a trabajar.
   struct stat comando_stat;
   stat(args[1].c_str(), &comando_stat);
-  if(args.size() != 2) {                // Si no hay dos argumentos, se devuelve un error.
-    std::cerr << "El comando cd se debe ejecutar de la forma; cd dst_path/" << std::endl;
+  if(args.size() == 1 && args.at(0) == "cd") { // IMPLEMENTACIÓN PROPIA
+    directorio = directory();                  // GUARDAMOS EL DIRECTORIO ANTES DE CAMBIARLO PARA UTILIZAR LA IMPLEMENTACIÓN
+                                               // "cd -".
+    chdir("/");                                // SI SE ESCRIBE SÓLO "CD", NOS LLEVA AL DIRECTORIO RAIZ.
+    return 0;
+  } else if(args.size() != 2) {                // Si no hay dos argumentos, se devuelve un error.
+    std::cerr << "El comando cd se debe ejecutar de la forma; cd (dst_path)" << std::endl;
     return errno;
-  }
-  else {
-    if(S_ISDIR(comando_stat.st_mode)) { // Si es directorio.
+  } else {
+    if(args.at(1) == "-"){                     // IMPLEMENTACIÓN PROPIA
+      chdir(directorio.c_str());               // CAMBIAMOS AL DIRECTORIO ANTERIOR.
+      return 0;
+    } else if(S_ISDIR(comando_stat.st_mode)) { // Si es directorio.
+      directorio = directory();         // GUARDAMOS EL DIRECTORIO ANTES DE CAMBIARLO PARA UTILIZAR LA IMPLEMENTACIÓN
+                                        // "cd -".
       chdir(args.at(1).c_str());        // Se ejecuta chdir.
       return 0;
     } else {                            // Si no es directorio.
@@ -72,27 +87,25 @@ int Terminal::echo_command(const std::vector<std::string>& args) {
 int Terminal::interno_command(const std::vector<std::string>& args) {
   if(args[0] == "cd") {           // Si recogemos un "cd" como palabra introducida por el usuario,
                                   // ejecutamos la función cd_command.
-    cd_command(args);
+    return cd_command(args);
   } else if(args[0] == "echo") {  // Si recogemos un "echo" como palabra introducida por el usuario,
                                   // ejecutamos la función echo_command.
-    echo_command(args);
+    return echo_command(args);
   } else if(args[0] == "cp") {    // Si recogemos un "cp" como palabra introducida por el usuario,
                                   // ejecutamos la función copy_file.
     if(args.size() == 4) {
-      std::cout << args[2] << " " << args[3] << std::endl;
-      copy_file(args[2], args[3], true);
+      return copy_file(args[2], args[3], true).value();
     } else if(args.size() == 3) {
-      std::cout << args[1] << " " << args[2] << std::endl;
-      copy_file(args[1], args[2]);
+      return copy_file(args[1], args[2]).value();
     }
   } else if(args[0] == "mv") {    // Si recogemos un "mv" como palabra introducida por el usuario,
                                   // ejecutamos la función move_file.
-    move_file(args[1], args[2]);
+    return move_file(args[1], args[2]).value();
   }
   return 0;
 }
 
-int execute_program(const std::vector<std::string>& args, bool has_wait=true) {
+int Terminal::execute_program(const std::vector<std::string>& args, bool has_wait) {
   pid_t child = fork();             // Creamos un proceso hijo.
   int status;                       // Creamos una variable status que almacene el resultado de la ejecución de execvp.
   std::vector<const char*> result;  // Creamos un vector de char constantes para ir almacenando los argumentos de args
@@ -108,7 +121,11 @@ int execute_program(const std::vector<std::string>& args, bool has_wait=true) {
                                                                           // devuelto en status.
   } else if(child > 0){                          // Si es un proceso padre.
     if(has_wait) {                               // Si has_wait es true.
-      wait(nullptr);                             // Ejecutamos la función wait para que espere a que el hijo termine.
+      wait(&status);                             // Ejecutamos la función wait para que espere a que el hijo termine.
+    } else {
+      std::pair<std::string, int> pair(args[0], child);
+      background_processes.push_back(pair);
+      return 0;
     }
   }
   return status;                                 // Devolvemos el valor de status.
@@ -119,23 +136,40 @@ shell::command_result Terminal::execute_commands(const std::vector<shell::comman
                       // almacenará la salida de los comandos internos/externos.
 
   for(auto command : commands) {
-    bool has_wait = true;                            // Creamos una variable has_wait inicializada a true.
-    char last_char = command[command.size() - 1][0]; // asignamos "last_char" como el último carácter del vector.
-    if(last_char == '&') has_wait=false;             // Si en el comando recibimos un &, has_wait entendemos que es falso.
+    bool has_wait = true;                              // Creamos una variable has_wait inicializada a true.
+    char last_char = command[command.size() - 1][0];   // asignamos "last_char" como el último carácter del vector.
+    if(last_char == '&') has_wait=false;               // Si en el comando recibimos un &, has_wait entendemos que es falso.
     if (last_char == ';' || last_char == '&' || last_char == '|') command.pop_back(); // Si last_char es uno de estos casos,
                                                                                       // lo eliminamos.
-    if(command.at(0) == "exit") return shell::command_result::quit(0); // Si el comando recibe un "exit", saldremos del programa.
-
+    if(command.at(0) == "exit") {
+      if(command.size() > 1) return_value = std::stoi(command[1]);
+      return shell::command_result::quit(return_value); // Si el comando recibe un "exit", saldremos del programa.
+    }
     if(EsComandoInterno(command)) {                                    // Si es un comando interno.
       return_value = interno_command(command);                         // Ejecutamos "interno_command" a la par que guardamos
                                                                        // el valor dado por esta función.
-    } 
+    }
     else {                                               // Si no es un comando interno.
       return_value = execute_program(command, has_wait); // Ejecutamos "execute_program" a la par que guardamos
                                                          // el valor dado por esta función. 
     }
   }
-  return shell::command_result(return_value, false);     // Devolvemos un shell_command_result correspondiente.
+  std::vector<std::pair<std::string, int>> aux;
+  for (const auto& p: background_processes) {
+    int status;
+    int result = waitpid(p.second, &status, WNOHANG);
+     if (result != 0) {         // Si el proceso terminó de ejecutarse
+      if(WIFSIGNALED(status)) { // Evalua si terminó con una señal.
+        print("[" + std::to_string(p.second) + "] " + p.first+ " terminado (signal " + std::to_string(status) + ")\n");
+      } else {
+        print("[" + std::to_string(p.second) + "] " + p.first+ " terminado (" + std::to_string(status) + ")\n");
+      }
+    } else {
+      aux.push_back(p); // Si no ha terminado, almacenamos en el vector auxiliar el proceso
+    }
+  }
+  background_processes = aux;
+  return shell::command_result(return_value, false);  // Devolvemos un shell_command_result correspondiente.
 }
 
 std::vector<shell::command> Terminal::parse_line(const std::string& line) {
@@ -157,8 +191,8 @@ std::vector<shell::command> Terminal::parse_line(const std::string& line) {
         }
         // Puesto que este ultimo caracter nos indica el final del comando (';', '|', '&'),
         // añadiremos el comando al vector de vectores ("std::vector<shell::command> comandos;").      
-          comando_actual.push_back(std::string{last_char});      // Introducimos el carácter en solitario 
-                                                                 // como último argumento del comando actual
+          comando_actual.push_back(std::string{last_char});   // Introducimos el carácter en solitario 
+                                                              // como último argumento del comando actual.
           comandos.push_back(comando_actual); // Añadimos el comando actual a la lista de comandos
           comando_actual.clear();             // Vaciamos el comando contenido en el comando actual.
       } else if (word[0] == '#') {
@@ -177,7 +211,6 @@ std::vector<shell::command> Terminal::parse_line(const std::string& line) {
 }
 
 std::error_code Terminal::read_line(int fd, std::string& line) {
-  std::string pending_input = line; // creamos pending input para utilizarlo como almacen de line.
   ssize_t posicion;                 // creamos una posición que utilizaremos posteriormente con "find".
   std::array<uint8_t,512> buffer;   // creamos un buffer para leer.
 
@@ -196,15 +229,15 @@ std::error_code Terminal::read_line(int fd, std::string& line) {
       return std::error_code(errno, std::system_category()); // si es -1 devuelve un error específico con errno.
     }
 
-    if(bytes==0) {                // si bytes es 0 (buffer no tiene nada).
-      if(pending_input.empty()) { // si pending_input está vacío.
-        line = pending_input;     // line contendrá lo mismo que pending_input (nada/vacío).
-        line += "\n";             // añadimos al final un "\n".
-        pending_input.clear();    // vaciamos pending_input.
+    if(bytes==0 || (bytes == 1 && buffer[0] == '\n')) {      // si bytes es 0 (buffer no tiene nada).
+      if(!pending_input.empty()) {  // si pending_input no está vacío.
+        line = pending_input;       // line contendrá lo mismo que pending_input (nada/vacío).
+        line += "\n";               // añadimos al final un "\n".
+        pending_input.clear();      // vaciamos pending_input.
       }
       return std::error_code();
     } else {                        // si bytes no es 0 (buffer con contenido).
-      for(int i = 0; i < buffer.size(); ++i) {
+      for(int i = 0; i < bytes; ++i) {
         pending_input += buffer[i]; // añadimos a pending_input la información del buffer.
       }
     }
@@ -212,20 +245,20 @@ std::error_code Terminal::read_line(int fd, std::string& line) {
   return std::error_code();
 }
 
-void Terminal::start() {                   // Función para empezar con la ejecución del programa.
-  int fd = STDIN_FILENO;                   // Se declara fd como STDIN_FILENO.
-  std::string line;                        // Declaramos una variable string line para recoger los comandos introducidos por el usuario.
-  bool condicion = true;                   
-  shell::command_result result(0,condicion);
+// Función para empezar con la ejecución del programa.
+void Terminal::start() {
+  int fd = STDIN_FILENO;                     // Se declara fd como STDIN_FILENO para leer.
+  std::string line;                          // Declaramos una variable string line para recoger los comandos introducidos por el usuario.
+  bool condicion = true;                     // Condición para el bucle principal.
+  shell::command_result result(0,false);     // Declaramos un command_result el cual usaremos para obtener la salida de la ejecución
+                                             // del comando.
   while(condicion) {
-    print_prompt(result.return_value);    // Imprimimos el prompt por cada ejecución.
-    getline(std::cin, line);
+    print_prompt(result.return_value);       // Imprimimos el prompt por cada ejecución.
+    read_line(fd, line);                     // Comenzamos con la funcionalidad de el programa.
     if(!line.empty()) {
-      line += "\n";                              // Le añadimos un "\n" al final.
-      read_line(fd, line);                       // Comenzamos con la funcionalidad de el programa.
-      std::vector<shell::command> commands = parse_line(line);
-      result = execute_commands(commands);       // Ejecutamos execute_commands con parametro parse_line(line).
-      if(result.is_quit_requested) condicion = false;
+      std::vector<shell::command> commands = parse_line(line);  // Guardamos en un vector de vectores de string la ejecución de parse_line.
+      result = execute_commands(commands);   // Ejecutamos execute_commands con parametro parse_line(line).
+      if(result.is_quit_requested) condicion = false;           // Si "exit", salimos del programa.
     }
   }
 }

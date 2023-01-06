@@ -4,6 +4,15 @@
 #include<stdlib.h>
 #include<time.h>
 
+void Inicio() {
+  std::cout << "¿De qué tema quieres que te haga preguntas?" << std::endl;
+  std::cout << "4. Gestión de memoria" << std::endl;
+  std::cout << "5. Gestión de almacenamiento" << std::endl;
+  std::cout << "6. Mix" << std::endl;
+  std::cout << "7. Preguntas tipo examen" << std::endl;
+  std::cout << "Introduce el número: ";
+}
+
 std::vector<std::string> Tema4(std::vector<std::string> vector) {
   vector.push_back("MEMORIA PRINCIPAL");
   vector.push_back("REASIGNACIÓN DE DIRECCIONES");
@@ -44,6 +53,47 @@ std::vector<std::string> Tema4(std::vector<std::string> vector) {
   return vector;
 }
 
+std::vector<std::string> Tema5(std::vector<std::string> vector) {
+
+  return vector;
+}
+
+std::vector<std::string> Examen(std::vector<std::string> vector) {
+  vector.push_back("HIPERPAGINACIÓN y MODELO DE CONJUTNO DE TRABAJO");
+  vector.push_back("VOLÚMENES DE DATOS");
+  vector.push_back("FRAGMENTACIÓN EXTERNA E INTERNA");
+  vector.push_back("METADATOS");
+  vector.push_back("TIEMPO DE ACCESO EFECTIVO A MEMORIA");
+  vector.push_back("MEMORIA VIRTUAL");
+  vector.push_back("ESTRUCTURA DE DIRECTORIOS (ARBOL, GRAFOS ACÍCLICOS, ETC)");
+  vector.push_back("PROBLEMAS REEMPLAZO DE PÁGINA");
+  vector.push_back("PAGINACIÓN BAJO DEMANDA");
+  vector.push_back("TAMAÑO DE LAS PÁGINAS");
+  vector.push_back("COPY-ON-WRITE");
+  return vector;
+}
+
+void AleatorioExamen(std::vector<std::string> vector) {
+  int n=3;
+  srand(time(NULL));
+  std::cout << "Explícame qué es: ";
+  for(int i = 0; i < 3; ++i) {
+    int numero = rand()%11;
+    if(i == n-1) {
+      std::cout << " y " << vector[numero] << "." << std::endl;
+    } else if (i == n-2) {
+      std::cout << vector[numero]; 
+    } else {
+      std::cout << vector[numero] << ", "; 
+    }
+  }
+}
+
+std::vector<std::string> Mix(std::vector<std::string> vector) {
+
+  return vector;
+}
+
 void Aleatorio(std::vector<std::string> vector) {
   int n=3;
   srand(time(NULL));
@@ -62,6 +112,27 @@ void Aleatorio(std::vector<std::string> vector) {
 
 int main() {
   std::vector<std::string> vector;
-  vector = Tema4(vector);
-  Aleatorio(vector);
+  int numero;
+  Inicio();
+  std::cin >> numero;
+  if(numero == 4) {
+    vector = Tema4(vector);
+    std::cout << "\n";
+    Aleatorio(vector);
+  } else if(numero == 5) {
+    vector = Tema5(vector);
+    std::cout << "\n";
+    Aleatorio(vector);
+  } else if(numero == 6) {
+    vector = Mix(vector);
+    std::cout << "\n";
+    Aleatorio(vector);
+  } else if(numero == 7) {
+    vector = Examen(vector);
+    std::cout << "\n";
+    AleatorioExamen(vector);
+  } else {
+    std::cerr << "El numero introducido no es válido" << std::endl;
+  }
+  return 0;
 }

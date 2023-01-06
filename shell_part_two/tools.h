@@ -1,6 +1,9 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 #include <iostream>
+#include <pwd.h>
+#include <string>
+#include <array>
 #include "terminal.h"
 
 // NOMBRE: Tomás Javes Tommasone
@@ -12,5 +15,7 @@
 //  SI HUBIERA ERROR, COMPILAR CON: g++ --std=c++17 main.cc tools.cc funciones_shell.cc terminal.cc
 
 std::error_code print(const std::string& str);
+std::string getUserlogin();
+std::string directory();
 
 #endif
