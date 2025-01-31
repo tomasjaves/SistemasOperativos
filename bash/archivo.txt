@@ -1,9 +1,0 @@
-Si se llama al script con la opción -devicefiles, representaremos la tabla considerando solo los dispositivos
-
-representados en el sistema operativo como archivos (device files) y que como hemos mencionado se identifican
-
-con un número mayor y un número menor. Además, si se utiliza esta opción, se incluirá en cada fila de la tabla
-
-el número total de archivos abiertos en los dispositivos considerados, para el sistema de archivo descrito en esa fila.
-
-Puede serte útil en este caso, el comando lsof que muestra información sobre los archivos abiertos.
