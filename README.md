@@ -1,6 +1,6 @@
 # Prácticas de Sistemas Operativos
 
-Este repositorio contiene las prácticas desarrolladas para la asignatura de Sistemas Operativos en el curso académico 2023-2024.
+Este repositorio contiene las prácticas desarrolladas para la asignatura de Sistemas Operativos en el curso académico 2022-2023.
 El proyecto se centra en la implementación de diferentes aspectos de los sistemas operativos, con un enfoque particular en la creación de shells y scripts de bash.
 
 ## Estructura del Repositorio
